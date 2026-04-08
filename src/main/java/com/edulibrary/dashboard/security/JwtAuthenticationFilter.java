@@ -11,11 +11,14 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.UrlPathHelper;
 
 import java.io.IOException;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final UrlPathHelper URL_PATH_HELPER = new UrlPathHelper();
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
@@ -23,6 +26,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = URL_PATH_HELPER.getPathWithinApplication(request);
+        return path.startsWith("/auth/") || path.startsWith("/api/auth/") || path.startsWith("/h2-console/");
     }
 
     @Override

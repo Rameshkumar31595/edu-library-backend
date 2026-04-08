@@ -3,6 +3,7 @@ package com.edulibrary.dashboard.controller;
 import com.edulibrary.dashboard.dto.ApiEnvelope;
 import com.edulibrary.dashboard.dto.CreateAnnouncementRequest;
 import com.edulibrary.dashboard.dto.UpdateProgressRequest;
+import com.edulibrary.dashboard.exception.UnauthorizedException;
 import com.edulibrary.dashboard.service.StudentDashboardService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
@@ -33,11 +34,17 @@ public class StudentDashboardController {
 
     @GetMapping("/student/dashboard")
     public Object getDashboard(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedException("Not authenticated");
+        }
         return service.getDashboard(authentication.getName());
     }
 
     @PatchMapping("/student/learning/{itemId}/progress")
     public ApiEnvelope updateProgress(Authentication authentication, @PathVariable String itemId, @Valid @RequestBody UpdateProgressRequest request) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedException("Not authenticated");
+        }
         return new ApiEnvelope(true, service.updateProgress(authentication.getName(), itemId, request.getProgress()));
     }
 

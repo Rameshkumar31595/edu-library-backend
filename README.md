@@ -16,7 +16,7 @@ This module implements the Student Dashboard backend using Spring Boot layered a
 - `POST /api/auth/login`
 - `GET /api/auth/me`
 - `GET /api/health`
-- `GET /api/student/dashboard?email=demo.student@library.local`
+- `GET /api/student/dashboard`
 - `PATCH /api/student/learning/{itemId}/progress`
 - `POST /api/student/announcements`
 

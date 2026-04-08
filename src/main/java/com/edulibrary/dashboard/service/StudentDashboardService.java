@@ -27,8 +27,8 @@ public class StudentDashboardService {
     }
 
     @Transactional(readOnly = true)
-    public DashboardResponse getDashboard(String email) {
-        Student student = resolveStudent(email);
+    public DashboardResponse getDashboard(String authenticatedEmail) {
+        Student student = resolveStudent(authenticatedEmail);
         return new DashboardResponse(
                 new StudentSummaryResponse(student.getId(), student.getName(), student.getEmail()),
                 student.getMetrics(),
@@ -41,8 +41,8 @@ public class StudentDashboardService {
     }
 
     @Transactional
-    public LearningItem updateProgress(String email, String itemId, int progress) {
-        Student student = resolveStudent(email);
+    public LearningItem updateProgress(String authenticatedEmail, String itemId, int progress) {
+        Student student = resolveStudent(authenticatedEmail);
 
         LearningItem item = student.getLearningItems().stream()
                 .filter(it -> it.getId().equals(itemId))
@@ -66,8 +66,8 @@ public class StudentDashboardService {
         return announcementRepository.save(item);
     }
 
-    private Student resolveStudent(String email) {
-        return studentRepository.findByEmailIgnoreCase(email.trim().toLowerCase(Locale.ROOT))
-                .orElseThrow(() -> new NotFoundException("Student not found for email: " + email));
+    private Student resolveStudent(String authenticatedEmail) {
+        return studentRepository.findByEmailIgnoreCase(authenticatedEmail.trim().toLowerCase(Locale.ROOT))
+                .orElseThrow(() -> new NotFoundException("Student not found for email: " + authenticatedEmail));
     }
 }
