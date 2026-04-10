@@ -30,7 +30,7 @@ public class DataSeeder {
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
-            if (studentRepository.count() == 0) {
+            if (studentRepository.findByEmailIgnoreCase("demo.student@library.local").isEmpty()) {
                 Student student = new Student();
                 student.setId("stu-001");
                 student.setName("Student Demo");
@@ -56,7 +56,7 @@ public class DataSeeder {
                 studentRepository.save(student);
             }
 
-            if (userAccountRepository.count() == 0) {
+            if (userAccountRepository.findByEmailIgnoreCase("demo.student@library.local").isEmpty()) {
                 userAccountRepository.save(createUser(
                         "Student Demo",
                         "demo.student@library.local",
@@ -65,7 +65,9 @@ public class DataSeeder {
                         "demo.student@library.local",
                         passwordEncoder
                 ));
+                    }
 
+                    if (userAccountRepository.findByEmailIgnoreCase("demo.admin@library.local").isEmpty()) {
                 userAccountRepository.save(createUser(
                         "Admin Demo",
                         "demo.admin@library.local",
@@ -76,8 +78,10 @@ public class DataSeeder {
                 ));
             }
 
-            if (announcementRepository.count() == 0) {
+            if (announcementRepository.findById("a-001").isEmpty()) {
                 announcementRepository.save(createAnnouncement("a-001", "Library Update", "New course materials have been published. Please check your dashboard resources.", "normal", Instant.parse("2026-04-05T10:30:00Z")));
+            }
+            if (announcementRepository.findById("a-002").isEmpty()) {
                 announcementRepository.save(createAnnouncement("a-002", "Submission Reminder", "Final assignment submissions close this Friday at 6 PM.", "urgent", Instant.parse("2026-04-07T09:00:00Z")));
             }
         };
