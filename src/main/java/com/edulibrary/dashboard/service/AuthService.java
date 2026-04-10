@@ -65,13 +65,32 @@ public class AuthService {
         this.mailHost = mailHost;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
-        UserAccount account = userAccountRepository.findByEmailIgnoreCase(request.getEmail())
+        String normalizedEmail = request.getEmail() == null
+                ? ""
+                : request.getEmail().trim().toLowerCase(Locale.ROOT);
+
+        UserAccount account = userAccountRepository
+            .findByEmailIgnoreCaseOrStudentEmailIgnoreCase(normalizedEmail, normalizedEmail)
                 .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
 
-        if (!passwordEncoder.matches(request.getPassword(), account.getPasswordHash())) {
+        String rawPassword = request.getPassword();
+        boolean passwordValid = passwordEncoder.matches(rawPassword, account.getPasswordHash());
+
+        // Backward compatibility: check for legacy plain-text passwords
+        if (!passwordValid && account.getPasswordHash() != null && account.getPasswordHash().equals(rawPassword)) {
+            account.setPasswordHash(passwordEncoder.encode(rawPassword));
+            passwordValid = true;
+        }
+
+        if (!passwordValid) {
             throw new UnauthorizedException("Invalid email or password");
+        }
+
+        // Update password hash if it was upgraded from plain-text
+        if (!passwordEncoder.matches(rawPassword, account.getPasswordHash())) {
+            userAccountRepository.save(account);
         }
 
         String token = jwtService.generateToken(account);
@@ -80,7 +99,7 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public AuthUserResponse currentUser(String email) {
-        UserAccount account = userAccountRepository.findByEmailIgnoreCase(email)
+        UserAccount account = userAccountRepository.findByEmailIgnoreCaseOrStudentEmailIgnoreCase(email, email)
                 .orElseThrow(() -> new UnauthorizedException("User not found"));
         return toUserResponse(account);
     }

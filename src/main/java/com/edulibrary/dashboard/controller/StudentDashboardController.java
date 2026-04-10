@@ -6,6 +6,7 @@ import com.edulibrary.dashboard.dto.UpdateProgressRequest;
 import com.edulibrary.dashboard.exception.UnauthorizedException;
 import com.edulibrary.dashboard.service.StudentDashboardService;
 import jakarta.validation.Valid;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -22,14 +23,26 @@ import java.util.Map;
 public class StudentDashboardController {
 
     private final StudentDashboardService service;
+    private final JdbcTemplate jdbcTemplate;
 
-    public StudentDashboardController(StudentDashboardService service) {
+    public StudentDashboardController(StudentDashboardService service, JdbcTemplate jdbcTemplate) {
         this.service = service;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @GetMapping("/health")
     public Map<String, Object> health() {
         return Map.of("ok", true, "service", "edu-library-student-dashboard-api");
+    }
+
+    @GetMapping("/health/db")
+    public Map<String, Object> dbHealth() {
+        try {
+            Integer result = jdbcTemplate.queryForObject("SELECT 1", Integer.class);
+            return Map.of("ok", result != null && result == 1, "database", "connected");
+        } catch (Exception ex) {
+            return Map.of("ok", false, "database", "disconnected", "message", ex.getMessage());
+        }
     }
 
     @GetMapping("/student/dashboard")
